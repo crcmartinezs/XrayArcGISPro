@@ -2,4 +2,4 @@
 venv
 *.xlsx
 *.xls
-
+__pycache__

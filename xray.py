@@ -9,9 +9,6 @@ class Checker:
     @property
     def gdb_elements(self):
 
-        # elements = [{'Name': fc.name, 'Type': fc.dataType,
-        #              'Children': [{'Child_Name': c.name, 'Child_Type': c.dataType} for c in fc.children]}
-        #             for fc in arcpy.Describe(self._wrkspc).children]
         elements = list(map(self.describe_elements, arcpy.Describe(self._wrkspc).children))
         return elements
 
