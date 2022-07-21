@@ -1,22 +1,39 @@
-wrkspc = r'D:\OneDrive - Esri NOSA\Consultoria\LES\ELAS\FAC\Proyectos\INFRAESTRUCTURA DIFRA\Infraestructura DIFRA\DIFRA_GDB_SQL_15AGO2019.gdb'
-
-
 import arcpy
 
 
 class Checker:
     def __init__(self, wrkspc):
-        arcpy.env.workspace = wrkspc
+        self._wrkspc = wrkspc
+
 
     @property
     def gdb_elements(self):
 
-        elements = [{'Name': fc.name, 'Type': fc.dataType,
-                     'Children': [{'Name': c.name, 'Type': c.dataType} for c in fc.children]}
-                    for fc in arcpy.Describe(wrkspc).children]
+        # elements = [{'Name': fc.name, 'Type': fc.dataType,
+        #              'Children': [{'Child_Name': c.name, 'Child_Type': c.dataType} for c in fc.children]}
+        #             for fc in arcpy.Describe(self._wrkspc).children]
+        elements = list(map(self.describe_elements, arcpy.Describe(self._wrkspc).children))
         return elements
 
+    def describe_elements(self, el, sufix=''):
+        data = {'Name' + sufix: el.name,
+                'DataType' + sufix: el.dataType,
+                'Children' + sufix: None}
+        if data['DataType' + sufix] == 'FeatureDataset':
+            n = len(el.children)
+            subset = list(map(self.describe_elements, el.children, ['_child'] * n))
+            data['Children'] = subset
 
+        elif data['DataType' + sufix] == 'FeatureClass':
+            fields = ', '.join([field.name for field in arcpy.ListFields(el.catalogPath)])
+            data['fields' + sufix] = fields
 
-print(Checker(wrkspc).gdb_elements)
+        elif data['DataType' + sufix] == 'Table':
+            fields = ', '.join([field.name for field in arcpy.ListFields(el.catalogPath)])
+            data['fields' + sufix] = fields
 
+        elif data['DataType' + sufix] == 'RelationshipClass':
+            data['Origin' + sufix] = el.originClassNames[0]
+            data['Destination' + sufix] = el.destinationClassNames[0]
+
+        return data

@@ -1,3 +1,5 @@
-config.yaml
+*.yaml
 venv
+*.xlsx
+*.xls
 
